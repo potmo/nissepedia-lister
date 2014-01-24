@@ -1,0 +1,16 @@
+{
+  "name": "Nissepedia-selector",
+  "version": "0.0.0",
+  "description": "Selector for nissepedia",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nisse Bergman",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "redis": "~0.10.0",
+    "express": "~3.4.8",
+    "MD5": "~1.2.0"
+  }
+}
