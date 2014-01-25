@@ -27,23 +27,38 @@ client.on('error', function (err) {
 	console.log('Error ' + err);
 });
 
+
+var users = ['jon', 'nisse', 'nicke', 'tb'];
+var editpassword = 'videnskaben';
+
+
+function validateUserAndPass(req, res)
+{
+	if (!('pass' in req.query))
+	{
+		res.send(500,  {error: 'must have pass in query'});
+		return false;
+	}
+
+	if (!('user' in req.query))
+	{
+		res.send(500,  {error: 'must have user in query'});
+		return false;
+	}
+
+	if (req.query.pass !== editpassword || users.indexOf(req.query.user) === -1)
+	{
+		res.send(500, {error: 'wrong username or password'});
+		return false;
+	}
+
+	return true;
+}
+
 client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 	console.log('Connected!');
 
-	/*
-	 client.set('an_article', '{"some":"json", "here":"then"}', redis.print);
-	 client.get('an_article', function(err, reply){
-		console.log('Found this: ' + reply);
-	 });
-	*/
-
-/*
-	client.hset('test_articles', 'First article', md5('First article'), redis.print);
-	client.hset('test_articles', 'Second article', md5('Second article'), redis.print);
-	client.hset('test_articles', 'Third article', md5('Third article'), redis.print);
-	client.hset('test_articles', 'Fourth article', md5('Fourth article'), redis.print);
-	*/
-
+	
 
 	app.use('/static', express.static(__dirname + '/public'));
 
@@ -59,7 +74,7 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 		var name = req.query.article;
 		var hash = md5(req.query.article);
 
-		client.hset('test_articles', name, hash, function(err, result)
+		client.zadd('test_articles_set', 0, name, function(err, result)
 		{
 			if (err)
 			{
@@ -67,32 +82,40 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 				return;
 			}
 
+			if (result === 0)
+			{
+				// no element added
+				res.send(500, {error: 'element already exist'});
+				return;
+			}
+
 			var defaultObj = 
 			{
 				title: name,
-				include: false,
 				comment: 'no',
 				id: 1234
 			};
 
-			client.hmset(hash, defaultObj, function(err, result)
+
+			client.hmset(name, defaultObj, function(err, result)
 			{
 				if (err)
 				{
 					res.send(500, {error: 'failed with: ' + err});
 					return;
 				}
-				res.send('OK');
+				res.send(200, {status: 'ok'});	
 			});
 
-			
 		});
 
 	});
 
 	app.get('/list', function(req, res){
 
-		client.hgetall("test_articles", function (err, obj) {
+		if (!validateUserAndPass(req, res)) return;
+
+		client.zrange("test_articles_set", 0,-1, function (err, obj) {
 			if (err)
 			{
 				res.send(500, {error: 'failed with: ' + err});
@@ -102,19 +125,31 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 			}
 		});
 		
+	});
+
+	app.get('/sortlist', function(req, res){
+		client.sort('test_articles_set', 'ALPHA', function (err, obj) {
+			if (err)
+			{
+				res.send(500, {error: 'failed with: ' + err});
+			}else
+			{
+				res.send(200, {status: 'ok'});	
+			}
+		});
 	});
 
 	app.get('/get', function(req, res){
 
-		if (!('hash' in req.query))
+		if (!('name' in req.query))
 		{
-			res.send(500, {error: 'must provide query hash'});
+			res.send(500, {error: 'must provide query name'});
 			return;
 		}
 
-		var hash = req.query.hash;
+		var name = req.query.name;
 
-		client.hgetall(hash, function (err, obj) {
+		client.hgetall(name, function (err, obj) {
 			if (err)
 			{
 				res.send(500, {error: 'failed with: ' + err});
@@ -126,11 +161,45 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 		
 	});
 
+	app.get('/setinclude', function(req, res){
+
+		if (!validateUserAndPass(req, res)) return;
+
+		if (!('name' in req.query))
+		{
+			res.send(500, {error: 'must provide query name'});
+			return;
+		}
+
+		if (!('value' in req.query))
+		{
+			res.send(500, {error: 'must provide query value'});
+			return;
+		}
+
+		var name =  req.query.name;
+		var key = 'include_' + req.query.user;
+		var value = req.query.value;
+
+		client.hset( name, key, value, function (err, obj) {
+			if (err)
+			{
+				res.send(500, {error: 'failed with: ' + err});
+			}else
+			{
+				res.send(200, {status: 'ok'});	
+			}
+		});
+
+
+
+	});
+
 	app.get('/set', function(req, res){
 
-		if (!('hash' in req.query))
+		if (!('name' in req.query))
 		{
-			res.send(500, {error: 'must provide query hash'});
+			res.send(500, {error: 'must provide query name'});
 			return;
 		}
 
@@ -146,7 +215,7 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 			return;
 		}
 
-		var hash = req.query.hash;
+		var name = req.query.name;
 		var key = req.query.key;
 		var value = req.query.value;
 
@@ -157,13 +226,13 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 			return;
 		}
 
-		client.hset(hash, key, value, function (err, obj) {
+		client.hset(name, key, value, function (err, obj) {
 			if (err)
 			{
 				res.send(500, {error: 'failed with: ' + err});
 			}else
 			{
-				res.send("OK");	
+				res.send(200, {status: 'ok'});	
 			}
 		});
 		
@@ -172,4 +241,6 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 	app.listen(3000);
 
 });
+
+
 

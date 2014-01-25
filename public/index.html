@@ -5,7 +5,227 @@
 </head>
 <body>
 
-Hello World! Yes man
+	<div id="listcontainer">
+	</div>
+
+	<style type="text/css">
+	.item
+	{
+
+	}
+
+	.namefield
+	{
+		display: inline-block;
+	}
+
+	.coloryes
+	{
+		display: inline-block;
+		color: #139B00;
+	}
+	
+	.colorno
+	{
+		display: inline-block;
+		color: #D50000;
+	}
+
+	.colorundecided{
+		display: inline-block;
+		color: #CCCCCC;	
+	}
+
+	</style>
+
+	<input id='loginbutton' type='button' value='Login'></input>
+	<input id='user' value='nisse' placeholder='user'></input>
+	<input id='pass' value='videnskaben' placeholder='pass'></input>
+
+	<script type="text/javascript">
+
+		var users = ['nisse', 'nicke', 'jon', 'tb'];
+
+		var myUser = getUser();
+		var pass = getPass();
+
+		var listContainer = document.getElementById('listcontainer');
+
+
+		function getInclusionClass(respObj, user)
+		{
+			if('include_' + user in respObj && respObj['include_' + user] === 'Y')
+			{
+				return 'coloryes';	
+			}
+			else if ('include_' + user in respObj && respObj['include_' + user] === 'N')
+			{
+				return 'colorno';	
+			}else
+			{
+				return 'colorundecided';
+			}
+		}
+
+		function setInclusion(name, value, buttons)
+		{
+			var user = getUser();
+			var pass = getPass();
+
+			var request = new XMLHttpRequest();
+
+			request.onload = function(result)
+			{
+				var array = JSON.parse(request.responseText);
+				// reload the item
+				loadItem(name, buttons);
+			}
+			request.onError = function(err)
+			{
+				console.error('error: ' + err);
+			}
+
+			request.open("get", "../setinclude?user=" + user + "&pass=" + pass + "&name=" + name + "&value=" + value, true);
+			request.send();
+		}
+
+		function loadItem(name, buttons)
+		{
+			var itemRequest = new XMLHttpRequest();
+
+			
+			
+			itemRequest.onload = function()
+			{
+
+				var resp = itemRequest.responseText;
+				var respObj = JSON.parse(resp);
+
+				// clear buttons
+				while (buttons.firstChild) {
+    				buttons.removeChild(buttons.firstChild);
+				}
+			
+				for (var i= 0; i < users.length; i++)
+				{
+					var user = users[i];
+					var okButtom;
+					var noButtom;
+					var otherLabel;
+
+					if (myUser === user)
+					{
+						okButton = document.createElement('input');
+						okButton.type = 'button';
+						okButton.value = '✔';
+
+						okButton.onclick = function(){setInclusion(name, 'Y', buttons)};
+
+						noButton = document.createElement('input');
+						noButton.type = 'button';
+						noButton.value = '✘';
+
+						noButton.onclick = function(){setInclusion(name, 'N', buttons)};
+
+						
+						okButton.classList.add(getInclusionClass(respObj, user));
+						noButton.classList.add(getInclusionClass(respObj, user));
+						
+						
+					}else
+					{
+						otherLabel = document.createElement('div');
+
+						if ('include_' + user in respObj && respObj['include_' + user] === 'Y')
+						{	
+							otherLabel.innerHTML = '✔';
+						}
+						else if('include_' + user in respObj && respObj['include_' + user] === 'N')
+						{
+							otherLabel.innerHTML = '✘';
+						}
+						else
+						{
+							otherLabel.innerHTML = '?';
+						}
+
+						otherLabel.classList.add(getInclusionClass(respObj, user));
+						
+					}
+
+					if(okButton) buttons.appendChild(okButton);
+					if(noButton) buttons.appendChild(noButton);
+					if(otherLabel) buttons.appendChild(otherLabel);
+				}
+
+			};
+
+
+
+			itemRequest.open("get", "../get?name=" + name + "&user=" + myUser + "&pass=" + pass, true);
+			itemRequest.send();
+		}
+
+		function addItem (name)
+		{
+			var item = document.createElement('div');
+			item.classList.add('item');
+
+			var buttons = document.createElement('div');
+
+			item.appendChild(buttons);
+
+			var nameField = document.createElement('div');
+			nameField.classList.add('namefield');
+			nameField.innerHTML = name;
+			item.appendChild(nameField);
+
+			listContainer.appendChild(item);
+
+			loadItem(name, buttons);
+		}
+
+		function loginAndList()
+		{
+
+			var user = getUser();
+			var pass = getPass();
+
+			var request = new XMLHttpRequest();
+
+			request.onload = function(result)
+			{
+				console.log('got: ' + request.responseText);
+
+				var array = JSON.parse(request.responseText);
+
+				for (var i = 0; i < array.length; i++) {
+					addItem(array[i]);
+				}
+			}
+			request.onError = function(err)
+			{
+				console.error('error: ' + err);
+			}
+
+			request.open("get", "../list?user=" + user + "&pass=" + pass, true);
+			request.send();
+		}
+
+		function getUser()
+		{
+			return document.getElementById('user').value;
+		}
+
+		function getPass()
+		{
+			return document.getElementById('pass').value;
+		}
+
+		document.getElementById('loginbutton').onclick = function() { loginAndList() };
+
+
+	</script>
 
 </body>
 </html>
