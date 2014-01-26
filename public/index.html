@@ -14,6 +14,21 @@
 
 	}
 
+	.buttons
+	{
+		display: inline-block;
+	}
+
+	.button
+	{
+		
+	}
+
+	.label
+	{
+		width: 15px;
+	}
+
 	.namefield
 	{
 		display: inline-block;
@@ -33,21 +48,19 @@
 
 	.colorundecided{
 		display: inline-block;
-		color: #CCCCCC;	
+		color: #AAAAAA;	
 	}
 
 	</style>
 
 	<input id='loginbutton' type='button' value='Login'></input>
-	<input id='user' value='nisse' placeholder='user'></input>
+	<input id='user' value='nicke' placeholder='user'></input>
 	<input id='pass' value='videnskaben' placeholder='pass'></input>
 
 	<script type="text/javascript">
 
 		var users = ['nisse', 'nicke', 'jon', 'tb'];
 
-		var myUser = getUser();
-		var pass = getPass();
 
 		var listContainer = document.getElementById('listcontainer');
 
@@ -109,11 +122,11 @@
 				for (var i= 0; i < users.length; i++)
 				{
 					var user = users[i];
-					var okButtom;
-					var noButtom;
+					var okButton;
+					var noButton;
 					var otherLabel;
 
-					if (myUser === user)
+					if (getUser() === user)
 					{
 						okButton = document.createElement('input');
 						okButton.type = 'button';
@@ -130,6 +143,9 @@
 						
 						okButton.classList.add(getInclusionClass(respObj, user));
 						noButton.classList.add(getInclusionClass(respObj, user));
+
+						okButton.classList.add('button');
+						noButton.classList.add('button');
 						
 						
 					}else
@@ -146,15 +162,18 @@
 						}
 						else
 						{
-							otherLabel.innerHTML = '?';
+							otherLabel.innerHTML = '♦';
 						}
 
+						otherLabel.title = user;
+
 						otherLabel.classList.add(getInclusionClass(respObj, user));
+						otherLabel.classList.add('label');
 						
 					}
 
-					if(okButton) buttons.appendChild(okButton);
-					if(noButton) buttons.appendChild(noButton);
+					if(okButton) buttons.insertBefore(okButton, buttons.firstChild);
+					if(noButton) buttons.insertBefore(noButton, buttons.firstChild);
 					if(otherLabel) buttons.appendChild(otherLabel);
 				}
 
@@ -162,7 +181,7 @@
 
 
 
-			itemRequest.open("get", "../get?name=" + name + "&user=" + myUser + "&pass=" + pass, true);
+			itemRequest.open("get", "../get?name=" + name + "&user=" + getUser() + "&pass=" + getPass(), true);
 			itemRequest.send();
 		}
 
@@ -172,6 +191,7 @@
 			item.classList.add('item');
 
 			var buttons = document.createElement('div');
+			buttons.classList.add('buttons');
 
 			item.appendChild(buttons);
 
@@ -195,6 +215,12 @@
 
 			request.onload = function(result)
 			{
+
+				// clear buttons
+				while (listcontainer.firstChild) {
+    				listcontainer.removeChild(listcontainer.firstChild);
+				}
+
 				console.log('got: ' + request.responseText);
 
 				var array = JSON.parse(request.responseText);

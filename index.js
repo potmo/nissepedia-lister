@@ -55,6 +55,23 @@ function validateUserAndPass(req, res)
 	return true;
 }
 
+function validateArguments(req, res, args)
+{
+
+	for (var i = 0; i < args.length; i++) {
+		var arg = args[i];
+
+		if (!(arg in req.query))
+		{
+			res.send(500, {error: 'must provide query ' + arg});
+			return false;
+		}
+	}
+
+	return true;
+
+}
+
 client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 	console.log('Connected!');
 
@@ -114,6 +131,8 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 	app.get('/list', function(req, res){
 
 		if (!validateUserAndPass(req, res)) return;
+		if (!validateArguments(req, res, [])) return;
+		
 
 		client.zrange("test_articles_set", 0,-1, function (err, obj) {
 			if (err)
@@ -128,6 +147,10 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 	});
 
 	app.get('/sortlist', function(req, res){
+
+		if (!validateUserAndPass(req, res)) return;
+		if (!validateArguments(req, res, [])) return;
+
 		client.sort('test_articles_set', 'ALPHA', function (err, obj) {
 			if (err)
 			{
@@ -141,11 +164,8 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 
 	app.get('/get', function(req, res){
 
-		if (!('name' in req.query))
-		{
-			res.send(500, {error: 'must provide query name'});
-			return;
-		}
+		if (!validateUserAndPass(req, res)) return;
+		if (!validateArguments(req, res, ['name'])) return;
 
 		var name = req.query.name;
 
@@ -164,18 +184,7 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 	app.get('/setinclude', function(req, res){
 
 		if (!validateUserAndPass(req, res)) return;
-
-		if (!('name' in req.query))
-		{
-			res.send(500, {error: 'must provide query name'});
-			return;
-		}
-
-		if (!('value' in req.query))
-		{
-			res.send(500, {error: 'must provide query value'});
-			return;
-		}
+		if (!validateArguments(req, res, ['name', 'value'])) return;
 
 		var name =  req.query.name;
 		var key = 'include_' + req.query.user;
@@ -197,24 +206,9 @@ client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
 
 	app.get('/set', function(req, res){
 
-		if (!('name' in req.query))
-		{
-			res.send(500, {error: 'must provide query name'});
-			return;
-		}
-
-		if (!('key' in req.query))
-		{
-			res.send(500, {error: 'must provide query key'});
-			return;
-		}
-
-		if (!('value' in req.query))
-		{
-			res.send(500, {error: 'must provide query value'});
-			return;
-		}
-
+		if (!validateUserAndPass(req, res)) return;
+		if (!validateArguments(req, res, ['name', 'value', 'key'])) return;
+	
 		var name = req.query.name;
 		var key = req.query.key;
 		var value = req.query.value;
