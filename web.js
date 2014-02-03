@@ -1,8 +1,11 @@
 var redis = require('redis');
 var express = require('express');
 var md5 = require('MD5');
+var logfmt = require("logfmt");
 
 var app = express();
+
+app.use(logfmt.requestLogger());
 
 
 /*
