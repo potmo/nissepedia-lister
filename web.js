@@ -21,7 +21,19 @@ http://localhost:3000/set?hash=988ce150657bed00b8f266f88e47554a&key=comment&valu
 */
 
 
-var client = redis.createClient(process.env.REDISTOGO_URL);
+var client;
+var redisAuthString;
+
+if (process.env.REDISTOGO_URL) {
+	var rtg = require("url").parse(process.env.REDISTOGO_URL);
+	client = redis.createClient(rtg.port, rtg.hostname);
+	redisAuthString = rtg.auth.split(":")[1]:
+} else {
+	client = redis.createClient();
+	redisAuthString = "";
+}
+
+ 
 
 client.on('error', function (err) {
 	console.log('Error ' + err);
@@ -72,7 +84,10 @@ function validateArguments(req, res, args)
 
 }
 
-client.auth('1cf8607cffe1c62d53b5ee481ec148ff', function() {
+
+
+
+client.auth(redisAuthString, function() {
 	console.log('Connected!');
 
 	
