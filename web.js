@@ -21,7 +21,7 @@ http://localhost:3000/set?hash=988ce150657bed00b8f266f88e47554a&key=comment&valu
 */
 
 
-var client = redis.createClient(11022, 'crestfish.redistogo.com');
+var client = redis.createClient(process.env.REDISTOGO_URL);
 
 client.on('error', function (err) {
 	console.log('Error ' + err);
