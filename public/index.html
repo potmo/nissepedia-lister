@@ -5,8 +5,7 @@
 </head>
 <body>
 
-	<div id="listcontainer">
-	</div>
+	
 
 	<style type="text/css">
 	.item
@@ -51,15 +50,32 @@
 		color: #AAAAAA;	
 	}
 
+	.listcontainer
+	{
+		width: 30em;
+	}
+
+	.iframe
+	{
+		position: absolute;
+		left: 30em;
+		top: 0em;
+	}
+
 	</style>
 
 	<input id='loginbutton' type='button' value='Login'></input>
-	<input id='user' value='nicke' placeholder='user'></input>
+	<input id='user' value='pot' placeholder='user'></input>
 	<input id='pass' value='videnskaben' placeholder='pass'></input>
+
+	<div id="listcontainer" class="listcontainer">
+	</div>
+
+	<iframe src="http://www.nissepedia.com" name="articleframe"></iframe>
 
 	<script type="text/javascript">
 
-		var users = ['nisse', 'nicke', 'jon', 'tb'];
+		var users = ['pot', 'jpn', 'hk', 'tb'];
 
 
 		var listContainer = document.getElementById('listcontainer');
@@ -197,7 +213,7 @@
 
 			var nameField = document.createElement('div');
 			nameField.classList.add('namefield');
-			nameField.innerHTML = name;
+			nameField.innerHTML = '<a href="http://nissepedia.com/index.php?title=' +name+ '" target="articleframe">' + name + '</a>';
 			item.appendChild(nameField);
 
 			listContainer.appendChild(item);
