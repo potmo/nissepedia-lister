@@ -215,7 +215,7 @@
 
 			var nameField = document.createElement('div');
 			nameField.classList.add('namefield');
-			nameField.innerHTML = '<a href="http://nissepedia.com/index.php?title=' +name+ '" target="articleframe">' + name + '</a>';
+			nameField.innerHTML = '<a href="http://nissepedia.com/index.php?title=' +encodeURIComponent(name)+ '" target="articleframe">' + name + '</a>';
 			item.appendChild(nameField);
 
 			listContainer.appendChild(item);
