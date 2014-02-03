@@ -43,7 +43,7 @@ client.on('error', function (err) {
 });
 
 
-var users = ['jon', 'nisse', 'nicke', 'tb'];
+var users = ['hk', 'pot', 'jpn', 'tb'];
 var editpassword = 'videnskaben';
 
 
@@ -100,11 +100,8 @@ client.auth(redisAuthString, function() {
 
 	app.get('/add', function(req, res){
 
-		if (!('article' in req.query))
-		{
-			res.send(500, {error: 'must provide query article'});
-			return;
-		}
+		if (!validateUserAndPass(req, res)) return;
+		if (!validateArguments(req, res, ['article'])) return;
 
 		var name = req.query.article;
 		var hash = md5(req.query.article);

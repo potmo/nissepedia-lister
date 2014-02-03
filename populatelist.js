@@ -3,7 +3,7 @@ var request = require('request');
 function addPageIfNotAdded(pageId, pageTitle)
 {
 		
-	request.get("http://secure-caverns-7325.herokuapp.com/add?article=" + pageTitle, function(error, response, body){
+	request.get("http://secure-caverns-7325.herokuapp.com/add?article=" + pageTitle + "&user=pot&pass=videnskaben", function(error, response, body){
 		if (error)
 		{
 			console.log("Error when saving " + pageTitle + ": " + error );
