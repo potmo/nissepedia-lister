@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8"> 
 <html>
 <head>
 	<title>Nissepedia artiklar</title>
@@ -71,6 +72,8 @@
 	<input id='pass' value='' placeholder='pass'></input><br>
 	<input id='loginbutton' type='button' value='Login'></input><br>
 
+	<input id='sort' type='button' value='sort'/><br>
+
 	<div id="listcontainer" class="listcontainer">
 	</div>
 
@@ -78,10 +81,14 @@
 
 	<script type="text/javascript">
 
+		var baseurl = 'http://secure-caverns-7325.herokuapp.com/';
+
 		var users = ['pot', 'jpn', 'hk', 'tb'];
 
 
 		var listContainer = document.getElementById('listcontainer');
+
+		var items = [];
 
 
 		function getInclusionClass(respObj, user)
@@ -117,7 +124,7 @@
 				console.error('error: ' + err);
 			}
 
-			request.open("get", "../setinclude?user=" + user + "&pass=" + pass + "&name=" + name + "&value=" + value, true);
+			request.open("get", baseurl + "/setinclude?user=" + user + "&pass=" + pass + "&name=" + name + "&value=" + value, true);
 			request.send();
 		}
 
@@ -132,6 +139,24 @@
 
 				var resp = itemRequest.responseText;
 				var respObj = JSON.parse(resp);
+
+				// replace old entry
+				var found = false;
+				for (i in items)
+				{
+					if (items[i].title === respObj.title)	
+					{
+						items[i] = respObj;
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					items.push(respObj);
+				}
+
 
 				// clear buttons
 				while (buttons.firstChild) {
@@ -200,7 +225,7 @@
 
 
 
-			itemRequest.open("get", "../get?name=" + name + "&user=" + getUser() + "&pass=" + getPass(), true);
+			itemRequest.open("get", baseurl + "/get?name=" + name + "&user=" + getUser() + "&pass=" + getPass(), true);
 			itemRequest.send();
 		}
 
@@ -221,6 +246,8 @@
 
 			listContainer.appendChild(item);
 
+			item.id = name;
+
 			loadItem(name, buttons);
 		}
 
@@ -240,8 +267,6 @@
     				listcontainer.removeChild(listcontainer.firstChild);
 				}
 
-				console.log('got: ' + request.responseText);
-
 				var array = JSON.parse(request.responseText);
 
 				for (var i = 0; i < array.length; i++) {
@@ -253,9 +278,67 @@
 				console.error('error: ' + err);
 			}
 
-			request.open("get", "../list?user=" + user + "&pass=" + pass, true);
+			request.open("get", baseurl + "/list?user=" + user + "&pass=" + pass, true);
 			request.send();
 		}
+
+		function sortListList()
+		{
+			items.sort(function(a, b){
+
+				var aYes = getNumberOfYes(a);
+				var bYes = getNumberOfYes(b);
+
+				if (aYes === bYes)
+				{
+					return b.title.localeCompare(a.title);
+				}else
+				{
+					return bYes - aYes;	
+				}
+				
+			});
+
+			var yeses = {};
+
+			for (i in items)
+			{
+				var item = items[i];
+				var elem = document.getElementById(item.title);
+				//listContainer.removeChild(elem);
+				listContainer.appendChild(elem);
+
+				var itemYeses = getNumberOfYes(item);
+				if (!yeses[itemYeses])
+				{
+					yeses[itemYeses] = 0;	
+				}
+
+				yeses[itemYeses]++;
+			}
+
+			console.log(JSON.stringify(yeses));
+
+
+		}
+
+		function getNumberOfYes(item)
+		{
+			var yeses = 0;
+			for (user in users)
+			{
+				if (item['include_' + users[user]] === 'Y')
+				{
+					yeses += 1;
+				}else if(item['include_' + users[user]] === 'N')
+				{
+					yeses -= 1;
+				}
+			}
+			return yeses;
+		}
+
+
 
 		function getUser()
 		{
@@ -268,6 +351,7 @@
 		}
 
 		document.getElementById('loginbutton').onclick = function() { loginAndList() };
+		document.getElementById('sort').onclick = function() { sortListList() };
 
 
 	</script>
