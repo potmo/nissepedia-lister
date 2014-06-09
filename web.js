@@ -87,16 +87,23 @@ function validateArguments(req, res, args)
 
 }
 
+function allowCrossDomain (req, res, next) {
+	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+	res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+	next();
+}
+
 
 
 
 client.auth(redisAuthString, function() {
 	console.log('Connected!');
 
-	
-
 	app.use('/static', express.static(__dirname + '/public'));
 
+	app.use(allowCrossDomain);
 
 	app.get('/add', function(req, res){
 
