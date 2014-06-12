@@ -14,6 +14,16 @@
 
 	}
 
+	.backgrounddecided
+	{
+		background-color: #FFFFFF;
+	}
+
+	.backgroundundecided
+	{
+		background-color: #FFFB9B;
+	}
+
 	.buttons
 	{
 		display: inline-block;
@@ -68,9 +78,9 @@
 	</style>
 
 	
-	<input id='user' value='' placeholder='user'></input><br>
-	<input id='pass' value='' placeholder='pass'></input><br>
-	<input id='loginbutton' type='button' value='Login'></input><br>
+	<input id='user' value='' placeholder='user'><br>
+	<input id='pass' value='' placeholder='pass'><br>
+	<input id='loginbutton' type='button' value='Login'><br>
 
 	<input id='sort' type='button' value='sort'/><br>
 
@@ -103,6 +113,21 @@
 			}else
 			{
 				return 'colorundecided';
+			}
+		}
+
+		function getBackgroundColorClass(respObj, user)
+		{
+			if('include_' + user in respObj && respObj['include_' + user] === 'Y')
+			{
+				return 'backgrounddecided';	
+			}
+			else if ('include_' + user in respObj && respObj['include_' + user] === 'N')
+			{
+				return 'backgrounddecided';	
+			}else
+			{
+				return 'backgroundundecided';
 			}
 		}
 
@@ -162,6 +187,8 @@
 				while (buttons.firstChild) {
     				buttons.removeChild(buttons.firstChild);
 				}
+
+
 			
 				for (var i= 0; i < users.length; i++)
 				{
@@ -215,6 +242,10 @@
 						otherLabel.classList.add('label');
 						
 					}
+
+					buttons.classList.remove('backgrounddecided');
+					buttons.classList.remove('backgroundundecided');
+					buttons.classList.add(getBackgroundColorClass(respObj, getUser()));
 
 					if(okButton) buttons.insertBefore(okButton, buttons.firstChild);
 					if(noButton) buttons.insertBefore(noButton, buttons.firstChild);
